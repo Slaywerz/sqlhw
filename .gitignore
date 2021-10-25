@@ -6,6 +6,7 @@
 .settings
 .springBeans
 .sts4-cache
+mysql/
 
 ### IntelliJ IDEA ###
 .idea
