@@ -9,3 +9,14 @@
 * _[AdoptOpenJDK 11](https://adoptopenjdk.net/)_
 * _[Docker Desktop](https://www.docker.com/products/docker-desktop)_
 * _IntelliJ IDEA или аналогичная IDE для Java_
+
+
+##Unix-системы(Linux/macOS)
+Запуск SUT на Unix-системах осуществляется посредством файла *_app-deadline.sh_*.
+
+*__Окружение, необходимое для запуска тестов__*:
+* _Дистрибутив Linux или macOS_
+* _[AdoptOpenJDK 11](https://adoptopenjdk.net/)_
+* _[Docker Desktop for macOS](https://www.docker.com/products/docker-desktop)_
+* [Docker Engine for Linux](https://hub.docker.com/search?offering=community&operating_system=linux&q=&type=edition)
+* _IntelliJ IDEA или аналогичная IDE для Java_
