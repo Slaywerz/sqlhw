@@ -1,14 +1,10 @@
 package ru.netology.data;
 
 import com.github.javafaker.Faker;
-import lombok.SneakyThrows;
-import lombok.Value;
-import lombok.val;
-import org.junit.jupiter.api.BeforeAll;
+import lombok.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 
 public class DataHelper {
     private DataHelper() {
@@ -16,24 +12,27 @@ public class DataHelper {
 
     private static Faker faker = new Faker();
 
+    //    Создаем подключение к БД
     @SneakyThrows
     public static Connection getConnection() {
         return DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/app", "app", "pass");
     }
 
-    @SneakyThrows
-    void generateUser() {
-        String dataSQL = "INSERT INTO users(id, login, password) VALUES(?, ?, ?);";
-
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(dataSQL);
-        ) {
-            preparedStatement.setString(1, "1");
-            preparedStatement.setString(2, faker.name().username());
-            preparedStatement.setString(3, "password321");
-            preparedStatement.executeUpdate();
-        }
-    }
+//    Генерируем пользователя со случайными данными для проверки авторизации пользователем не из демо-данных
+//    @SneakyThrows
+//    void generateUser() {
+//        String dataSQL = "INSERT INTO users(id, login, password) VALUES(?, ?, ?);";
+//
+//        try (PreparedStatement preparedStatement = getConnection().prepareStatement(dataSQL);
+//        ) {
+////            Присваеваем ID для поиска по БД данных сгенерированного пользователя
+//            preparedStatement.setString(1, "1");
+//            preparedStatement.setString(2, faker.name().username());
+//            preparedStatement.setString(3, faker.internet().password());
+//            preparedStatement.executeUpdate();
+//        }
+//    }
 
     @Value
     public static class AuthInfo {
@@ -41,43 +40,72 @@ public class DataHelper {
         String password;
     }
 
-    public static AuthInfo getFirstUserAuthInfo() {
+    public static AuthInfo getAuthInfo() {
         return new AuthInfo("vasya", "qwerty123");
     }
 
-
-    @SneakyThrows
-    public static AuthInfo getGenerateUser() {
-        String login = null;
-        String password = "password321";
-        var loginSQL = "SELECT login FROM app.users WHERE id = ?";
-        try (var con = getConnection();
-             var loginPrepareStatement = con.prepareStatement(loginSQL)) {
-            loginPrepareStatement.setString(1, "1");
-            try (var rs = loginPrepareStatement.executeQuery()) {
-                if (rs.next()) {
-                    login = rs.getString("login");
-                }
-            }
-        }
-        return new AuthInfo(login, password);
-    }
-
+    // Метод для поиска данных сгенерированного пользователя
+//    @SneakyThrows
+//    public static AuthInfo getGenerateUser() {
+////        Находим login по ID
+//        String login = null;
+//        val loginSQL = "SELECT login FROM users WHERE id = ?";
+//        try (val conn = getConnection();
+//             val loginStMt = conn.prepareStatement(loginSQL)) {
+//            loginStMt.setString(1, "1");
+//            try (val rs = loginStMt.executeQuery()) {
+//                if (rs.next()) {
+//                    login = rs.getString("login");
+//                }
+//            }
+//        }
+//        Находим пароль по найденному выше логину
+//        String password = null;
+//        val passwordSQL = "SELECT password FROM users WHERE login = ?";
+//        try (val conn = getConnection();
+//             val passwordStMt = conn.prepareStatement(passwordSQL)) {
+//            passwordStMt.setString(1, login);
+//            try (val rs = passwordStMt.executeQuery()) {
+//                if (rs.next()) {
+//                    password = rs.getString("password");
+//                }
+//            }
+//        }
+//        Найденные значения передаем в AuthInfo
+//        return new AuthInfo(login, password);
+//    }
     @Value
-    private static class VerificationCode {
+    public static class VerificationCode {
         String verificationCode;
     }
 
+    // Метод принимает AuthInfo для нахождения сгенерированного пароля по необходимому нам логину
     @SneakyThrows
-    public static VerificationCode getVerificationCode(){
+    public static VerificationCode getVerificationCodeFor(AuthInfo authInfo) {
+//        Находим в БД сначала ID т.к. он является FOREIGN_KEY таблицы users для таблицы auth_codes
         String userID = null;
-        val idSQL  = "SELECT login FROM app.users WHERE login = ?";
-        try (val conn = getConnection();
-        val idPrepareStatement = conn.prepareStatement(idSQL))
-        { idPrepareStatement.setString(1, "");
+        var idSQL = "SELECT login FROM app.users WHERE login = ?";
+        try (var conn = getConnection();
+             var idStMt = conn.prepareStatement(idSQL)) {
+            idStMt.setString(1, authInfo.getLogin());
+            try (var rs = idStMt.executeQuery()) {
+                if (rs.next()) {
+                    userID = rs.getString("id");
+                }
+            }
         }
-
+//        После того, как нашли ID, по нему ищем необходимый нам код верификации
         String verificationCode = null;
+        var verificationCodeSQL = "SELECT code FROM app.auth_codes WHERE user_id = ? ORDER BY created DESC limit 1";
+        try (var conn = getConnection();
+             var verificationCodeStMt = conn.prepareStatement(verificationCodeSQL)) {
+            verificationCodeStMt.setString(1, userID);
+            try (var rs = verificationCodeStMt.executeQuery()) {
+                if (rs.next()) {
+                    verificationCode = rs.getString("code");
+                }
+            }
+        }
         return new VerificationCode(verificationCode);
     }
 
