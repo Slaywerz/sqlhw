@@ -10,20 +10,20 @@ public class VerificationPage {
     private SelenideElement verifyButton = Selenide.$("[data-test-id='action-verify']");
     private SelenideElement errorMessage = Selenide.$("[data-test-id='error-notification']");
 
-    public VerificationPage(){
+    public VerificationPage() {
         codeField.shouldBe(Condition.visible);
     }
 
-    public DashboardPage validVerify(DataHelper.VerificationCode code){
+    public DashboardPage validVerify(DataHelper.VerificationCode code) {
         codeField.setValue(code.getVerificationCode());
         verifyButton.click();
         return new DashboardPage();
     }
 
-    public void invalidVerify(){
-        codeField.setValue(null);
+    public SelenideElement invalidVerify(DataHelper.VerificationCode invalidCode) {
+        codeField.setValue(invalidCode.getVerificationCode());
         verifyButton.click();
-        errorMessage.shouldBe(Condition.visible);
+        return errorMessage.shouldBe(Condition.visible);
     }
 
 }
