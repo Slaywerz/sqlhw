@@ -7,7 +7,7 @@ import com.codeborne.selenide.SelenideElement;
 public class DashboardPage {
     private SelenideElement heading = Selenide.$("[data-test-id='dashboard']");
 
-    public DashboardPage(){
+    public DashboardPage() {
         heading.shouldBe(Condition.visible);
     }
 }
